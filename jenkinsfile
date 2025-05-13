@@ -1,0 +1,65 @@
+pipeline {
+    agent any
+
+    tools {
+        jdk 'jdk17'
+        nodejs 'node24'
+    }
+
+    environment {
+        SCANNER_HOME = tool 'sonar-scanner' // 'sonar-scanner' must match Jenkins tool name
+    }
+
+    stages {
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+
+        stage('Git Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/varshithakjayappa/swiggy-app-cicd.git'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonar-server') { // 'sonar-server' should be the name of your SonarQube server instance in Jenkins
+                    sh "${SCANNER_HOME}/bin/sonar-scanner"
+                }
+            }
+        }
+        
+        stage('quality gate'){
+            steps{
+                waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token'
+            }
+        }
+        stage('install dependency'){
+            steps{
+                sh "npm install"
+            }
+        }
+        stage('OWASP scanning'){
+            steps{
+                dependencyCheck additionalArguments: '--scan ./', odcInstallation: 'DP-check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+       stage("docker build & push"){
+           steps{
+               withDockerRegistry(credentialsId: 'docker') {
+               sh 'docker build -t swiggy-app .'
+               sh 'docker tag swiggy-app varshithakj/swiggy-app:latest'
+               sh 'docker push varshithakj/swiggy-app:latest'
+              }
+           }
+       }
+       stage('Deploy to container'){
+            steps{
+                sh 'docker run -d --name swiggy -p 3000:3000 varshithakj/swiggy:latest'
+            }
+        }
+    }
+}
