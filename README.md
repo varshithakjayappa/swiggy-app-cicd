@@ -8,7 +8,6 @@ This project incorporates a modern DevOps stack for automating infrastructure an
 - **Jenkins** – CI/CD pipeline orchestration
 - **SonarQube** – Static code analysis and code quality checks
 - **OWASP Dependency-Check** – Vulnerability detection for dependencies
-- **Trivy** – Container image vulnerability scanner
 - **Docker & DockerHub** – Containerization and image repository
 
 ---
@@ -28,7 +27,7 @@ This project was created as part of a learning journey inspired by a YouTube tut
 During the learning process, I:
 
 - Customized Jenkins with additional plugins
-- Integrated Trivy and OWASP for security scanning
+- Integrated OWASP for security scanning
 - Used DockerHub for image hosting
 - Managed infrastructure using Terraform
 - Set up SonarQube for code quality checks
